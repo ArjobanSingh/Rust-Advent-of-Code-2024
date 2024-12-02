@@ -1,5 +1,5 @@
 use std::{collections::HashMap, fs};
-// 1666427
+
 pub fn get_distance_bw_lists(file_path: &str) {
     let mut list_1: Vec<u32> = Vec::new();
     let mut list_2_map: HashMap<u32, u32> = HashMap::new();
