@@ -52,6 +52,27 @@ fn get_product_if_valid(text: &str, idx: usize) -> Option<u32> {
     None
 }
 
+fn find_largest_smaller_than_x(arr: &Vec<usize>, x: usize) -> Option<usize> {
+    match arr.binary_search(&x) {
+        Ok(index) => {
+            // If we found `x`, return the previous element (largest smaller)
+            if index > 0 {
+                Some(arr[index - 1])
+            } else {
+                None
+            }
+        }
+        Err(index) => {
+            // If `x` isn't found, `index` is where `x` would go
+            if index > 0 {
+                Some(arr[index - 1]) // Largest smaller element
+            } else {
+                None // No smaller element exists
+            }
+        }
+    }
+}
+
 pub fn get_uncorrupted_mul_ans(file_path: &str) {
     let mut result = 0;
     if let Ok(data) = fs::read_to_string(file_path) {
@@ -61,28 +82,22 @@ pub fn get_uncorrupted_mul_ans(file_path: &str) {
             .map(|(index, _)| index)
             .collect();
 
-        // Basically for every "mul(" occurence, check what is the previous condition
-        // do or don't, based on checking there occurence index before curren mul occurence
-        // and then comparing b/w two indices to find the closest one.
+        // For each "mul(" occurrence, check the closest preceding condition by comparing indices.
         let occur_indices: Vec<usize> = data
             .match_indices(CHECK_STR)
             .map(|(index, _)| index)
-            .filter(|&index| {
-                let dont_idx_opt = dont_indices
-                    .iter()
-                    .rev()
-                    .find(|&&dont_idx| dont_idx < index);
-                if let Some(&dont_idx) = dont_idx_opt {
-                    let do_idx_option = do_indices.iter().rev().find(|&&dont_idx| dont_idx < index);
-                    if let Some(&do_idx) = do_idx_option {
+            .filter(|&mul_occ_idx| {
+                if let Some(dont_idx) = find_largest_smaller_than_x(&dont_indices, mul_occ_idx) {
+                    if let Some(do_idx) = find_largest_smaller_than_x(&do_indices, mul_occ_idx) {
                         return do_idx > dont_idx;
                     } else {
-                        // If no do index present less than current mul(, meaning do was
-                        // from start so any lesser don't index than mul( is latest, so return false
+                        // If no "do()"" index present less than current mul(, meaning don't()
+                        // condition is recent here, so return false to not use this mul.
                         return false;
                     }
                 }
-                // if don't index is not present return true to always have the value
+
+                // if don't index is not present return true to always consider this mul occurence
                 true
             })
             .collect();
