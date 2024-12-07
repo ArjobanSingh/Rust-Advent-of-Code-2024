@@ -5,8 +5,8 @@ use challenge_3::get_uncorrupted_mul_ans;
 use challenge_5::correct_page_order_sum as correct_page_order_sum_puz_1;
 use challenge_5_puz_2::correct_page_order_sum;
 use challenge_6::get_guard_distinct_pos_size;
+use challenge_7::bridge_repair_puz;
 use challenge_7_puz_1::bridge_repair_puz_1;
-// use challenge_6_puz_1::get_guard_distinct_pos_size;
 
 mod challenge_1;
 mod challenge_2;
@@ -16,6 +16,7 @@ mod challenge_5;
 mod challenge_5_puz_2;
 mod challenge_6;
 mod challenge_6_puz_1;
+mod challenge_7;
 mod challenge_7_puz_1;
 
 fn main() {
@@ -26,5 +27,5 @@ fn main() {
     // correct_page_order_sum_puz_1("src/inputs/challenge_5.txt");
     // correct_page_order_sum("src/inputs/challenge_5.txt");
     // get_guard_distinct_pos_size("src/inputs/challenge_6.txt");
-    bridge_repair_puz_1("src/inputs/challenge_7.txt");
+    bridge_repair_puz("src/inputs/challenge_7.txt");
 }
