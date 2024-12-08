@@ -7,6 +7,7 @@ use challenge_5_puz_2::correct_page_order_sum;
 use challenge_6::get_guard_distinct_pos_size;
 use challenge_7::bridge_repair_puz;
 use challenge_7_puz_1::bridge_repair_puz_1;
+use challenge_8_puz_1::resonant_collinearity;
 
 mod challenge_1;
 mod challenge_2;
@@ -18,6 +19,7 @@ mod challenge_6;
 mod challenge_6_puz_1;
 mod challenge_7;
 mod challenge_7_puz_1;
+mod challenge_8_puz_1;
 
 fn main() {
     // get_distance_bw_lists("src/inputs/challenge_1.txt");
@@ -27,5 +29,6 @@ fn main() {
     // correct_page_order_sum_puz_1("src/inputs/challenge_5.txt");
     // correct_page_order_sum("src/inputs/challenge_5.txt");
     // get_guard_distinct_pos_size("src/inputs/challenge_6.txt");
-    bridge_repair_puz("src/inputs/challenge_7.txt");
+    // bridge_repair_puz("src/inputs/challenge_7.txt");
+    resonant_collinearity("src/inputs/challenge_8.txt");
 }
