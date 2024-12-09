@@ -7,7 +7,7 @@ use challenge_5_puz_2::correct_page_order_sum;
 use challenge_6::get_guard_distinct_pos_size;
 use challenge_7::bridge_repair_puz;
 use challenge_7_puz_1::bridge_repair_puz_1;
-use challenge_8_puz_1::resonant_collinearity;
+use challenge_8::resonant_collinearity;
 
 mod challenge_1;
 mod challenge_2;
@@ -19,6 +19,7 @@ mod challenge_6;
 mod challenge_6_puz_1;
 mod challenge_7;
 mod challenge_7_puz_1;
+mod challenge_8;
 mod challenge_8_puz_1;
 
 fn main() {

@@ -32,6 +32,10 @@ impl Direction {
     }
 }
 
+fn get_uniq_idx(r: usize, c: usize, cols: usize) -> usize {
+    r * cols + c
+}
+
 fn get_direction(cell: (usize, usize), position: (usize, usize)) -> Option<Direction> {
     // If same row, then direction is either left or right
     if cell.0 == position.0 {
@@ -74,48 +78,47 @@ fn get_direction(cell: (usize, usize), position: (usize, usize)) -> Option<Direc
 
 fn get_is_antinode_on_cell(
     cell: (usize, usize),
-    node_map: &HashMap<char, HashSet<(usize, usize)>>,
+    positions: &HashSet<(usize, usize)>,
+    ant_nodes: &mut Vec<bool>,
     matrix_size: (usize, usize),
 ) -> bool {
     let rows_len = matrix_size.0 as isize;
     let cols_len = matrix_size.1 as isize;
 
-    for (_, positions) in node_map {
-        for &position in positions {
-            if cell.0 == position.0 && cell.1 == position.1 {
-                continue;
-            }
+    for &position in positions {
+        if cell.0 == position.0 && cell.1 == position.1 {
+            continue;
+        }
 
-            if let Some(dir) = get_direction(cell, position) {
-                // These two are aligned
-                let row_diff = cell.0.abs_diff(position.0);
-                let col_diff = cell.1.abs_diff(position.1);
+        if let Some(dir) = get_direction(cell, position) {
+            // These two are aligned
+            let row_diff = cell.0.abs_diff(position.0);
+            let col_diff = cell.1.abs_diff(position.1);
 
-                let dir_offset = dir.to_offset();
-                // Other Antenna would be twice the diff in that direction(using offset).
-                // Basically position of antenna + (cell diff with position * offset of that direction)
-                let offset_row = position.0 as isize + row_diff as isize * dir_offset.0;
-                let offset_col = position.1 as isize + col_diff as isize * dir_offset.1;
+            let dir_offset = dir.to_offset();
 
-                // if in bounds
-                if offset_row >= 0
-                    && offset_row < rows_len
-                    && offset_col >= 0
-                    && offset_col < cols_len
-                {
-                    if positions.contains(&(offset_row as usize, offset_col as usize)) {
-                        return true;
-                    }
-                }
+            // While in same direction of the matched Antenaa, till we are in bounds, keep on adding antinodes
+            // at same difference.
+            let mut offset_row = position.0 as isize;
+            let mut offset_col = position.1 as isize;
+
+            while offset_row >= 0
+                && offset_row < rows_len
+                && offset_col >= 0
+                && offset_col < cols_len
+            {
+                let cell_idx =
+                    get_uniq_idx(offset_row as usize, offset_col as usize, cols_len as usize);
+                ant_nodes[cell_idx] = true;
+                offset_row += row_diff as isize * dir_offset.0;
+                offset_col += col_diff as isize * dir_offset.1;
             }
         }
     }
     false
 }
 
-pub fn resonant_collinearity_puz_1(file_path: &str) {
-    let mut result = 0;
-
+pub fn resonant_collinearity(file_path: &str) {
     let mut node_map: HashMap<char, HashSet<(usize, usize)>> = HashMap::new();
     let mut matrix_size: Option<(usize, usize)> = None;
 
@@ -143,13 +146,19 @@ pub fn resonant_collinearity_puz_1(file_path: &str) {
 
     if let Some(size) = matrix_size {
         let (rows, cols) = size;
-        for row in 0..rows {
-            for col in 0..cols {
-                if get_is_antinode_on_cell((row, col), &mut node_map, size) {
-                    result += 1;
-                }
+
+        let mut anti_nodes: Vec<bool> = Vec::new();
+        anti_nodes.resize(rows * cols, false);
+
+        // For every antenna, check every other antenna of same frequency, and calculate the diff b/w the two
+        // and use the same diff to add antinodes at same direction till they are in bounds.
+        for (_, positions) in node_map {
+            for &position in &positions {
+                get_is_antinode_on_cell(position, &positions, &mut anti_nodes, size);
             }
         }
+
+        let result = anti_nodes.iter().filter(|&&val| val).count();
+        println!("Result of Challenge 8, puz 2: {result}");
     }
-    println!("Result of Challenge 8, puz 1: {result}");
 }
