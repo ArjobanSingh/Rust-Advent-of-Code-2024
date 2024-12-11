@@ -1,5 +1,5 @@
 use challenge_1::get_distance_bw_lists;
-use challenge_10_puz_1::topographic_map_search;
+use challenge_10::topographic_map_search;
 use challenge_2::get_safe_reports_count;
 use challenge_3::get_uncorrupted_mul_ans;
 // use challenge_4::search_for_xmas;
@@ -13,7 +13,7 @@ use challenge_9::disk_fragmenter;
 use challenge_9_puz_1::disk_fragmenter_puz_1;
 
 mod challenge_1;
-mod challenge_10_puz_1;
+mod challenge_10;
 mod challenge_2;
 mod challenge_3;
 mod challenge_4;
