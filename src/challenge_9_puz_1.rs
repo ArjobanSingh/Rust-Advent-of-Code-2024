@@ -22,7 +22,7 @@ fn rearrange_none_at_end(vec: &mut Vec<Option<u32>>) {
     }
 }
 
-pub fn disk_fragmenter(file_path: &str) {
+pub fn disk_fragmenter_puz_1(file_path: &str) {
     let mut vec: Vec<Option<u32>> = Vec::new();
     if let Ok(file) = File::open(file_path) {
         let mut reader = io::BufReader::new(file);
@@ -31,9 +31,8 @@ pub fn disk_fragmenter(file_path: &str) {
         if let Ok(size) = reader.read_line(&mut line) {
             if size > 0 {
                 let mut id = 0;
-                for (ch_idx, ch) in line.trim_end().chars().enumerate() {
-                    if let Some(digit) = ch.to_digit(10) {
-                        let num = digit as u32;
+                for (ch_idx, ch) in line.trim().chars().enumerate() {
+                    if let Some(num) = ch.to_digit(10) {
                         if ch_idx % 2 == 0 {
                             // Add id that many times
                             for _ in 0..num {
