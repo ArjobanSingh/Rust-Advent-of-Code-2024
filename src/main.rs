@@ -41,7 +41,7 @@ fn main() {
     // get_guard_distinct_pos_size("src/inputs/challenge_6.txt");
     // bridge_repair_puz("src/inputs/challenge_7.txt");
     // resonant_collinearity("src/inputs/challenge_8.txt");
-    // disk_fragmenter("src/inputs/challenge_9.txt");
+    disk_fragmenter("src/inputs/challenge_9.txt");
     // topographic_map_search("src/inputs/challenge_10.txt");
-    stone_count("src/inputs/challenge_11.txt");
+    // stone_count("src/inputs/challenge_11.txt");
 }
