@@ -16,6 +16,7 @@ use challenge_9_puz_1::disk_fragmenter_puz_1;
 mod challenge_1;
 mod challenge_10;
 mod challenge_11;
+mod challenge_11_puz_1;
 mod challenge_2;
 mod challenge_3;
 mod challenge_4;
