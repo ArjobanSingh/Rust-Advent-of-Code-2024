@@ -1,6 +1,7 @@
 use challenge_1::get_distance_bw_lists;
 use challenge_10::topographic_map_search;
 use challenge_11::stone_count;
+use challenge_12_puz_1::garden_groups;
 use challenge_2::get_safe_reports_count;
 use challenge_3::get_uncorrupted_mul_ans;
 // use challenge_4::search_for_xmas;
@@ -17,6 +18,7 @@ mod challenge_1;
 mod challenge_10;
 mod challenge_11;
 mod challenge_11_puz_1;
+mod challenge_12_puz_1;
 mod challenge_2;
 mod challenge_3;
 mod challenge_4;
@@ -41,7 +43,8 @@ fn main() {
     // get_guard_distinct_pos_size("src/inputs/challenge_6.txt");
     // bridge_repair_puz("src/inputs/challenge_7.txt");
     // resonant_collinearity("src/inputs/challenge_8.txt");
-    disk_fragmenter("src/inputs/challenge_9.txt");
+    // disk_fragmenter("src/inputs/challenge_9.txt");
     // topographic_map_search("src/inputs/challenge_10.txt");
     // stone_count("src/inputs/challenge_11.txt");
+    garden_groups("src/inputs/challenge_12.txt");
 }
