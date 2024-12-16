@@ -63,7 +63,7 @@ fn find_ans_for_cells(
     }
 }
 
-pub fn garden_groups(file_path: &str) {
+pub fn garden_groups_v1(file_path: &str) {
     if let Ok(file) = File::open(file_path) {
         let mut matrix: Vec<String> = Vec::new();
         let mut map: HashMap<char, Group> = HashMap::new();
