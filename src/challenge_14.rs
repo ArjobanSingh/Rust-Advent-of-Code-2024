@@ -1,7 +1,7 @@
 use regex::Regex;
 use std::{
-    fs::File,
-    io::{self, BufRead},
+    fs::{File, OpenOptions},
+    io::{self, BufRead, Write},
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -16,30 +16,8 @@ struct Robot {
     velocity: Coord,
 }
 
-enum Quarter {
-    TopRight,
-    BottomRight,
-    BottomLeft,
-    TopLeft,
-}
-
-impl Quarter {
-    fn get_quarter(&self) -> i32 {
-        match self {
-            Quarter::TopRight => 0,
-            Quarter::BottomRight => 1,
-            Quarter::BottomLeft => 2,
-            Quarter::TopLeft => 3,
-        }
-    }
-}
-
 const H: i32 = 103; // no. of rows
 const W: i32 = 101; // no. of cols
-const MOV_COUNT: i32 = 100;
-
-const MID_H: i32 = H / 2;
-const MID_W: i32 = W / 2;
 
 fn get_value(pos: i32, velocity: i32, max: i32) -> i32 {
     let mut value = pos + velocity;
@@ -58,61 +36,75 @@ fn move_robot(robot: &mut Robot) {
     robot.position.y = get_value(robot.position.y, robot.velocity.y, H);
 }
 
-// this gives the accurate values considering that pos is not in the center of the matrix
-fn get_matrix_quarter(pos: Coord) -> Quarter {
-    let x = pos.x - MID_W;
-    let y = pos.y - MID_H;
-    if y < 0 && x > 0 {
-        Quarter::TopRight
-    } else if y > 0 && x > 0 {
-        Quarter::BottomRight
-    } else if y > 0 && x < 0 {
-        Quarter::BottomLeft
-    } else {
-        Quarter::TopLeft
+fn print_robot_matrix(robots: &Vec<Robot>, index: i32) {
+    let mut matrix = vec![vec!['.'; W as usize]; H as usize];
+    for robot in robots.iter() {
+        matrix[robot.position.y as usize][robot.position.x as usize] = '#';
     }
+
+    // check if any row has consecutive X for more than 10 times
+    let mut count = 0;
+
+    // Instead of rendering every frame, we can check if the matrix has 10 consecutive cells in a row has X
+    // Bit hacky but it works
+    for row in matrix.iter() {
+        for col in row.iter() {
+            if count > 10 {
+                break;
+            }
+            if *col == '#' {
+                count += 1;
+            } else {
+                count = 0;
+            }
+        }
+    }
+
+    if count < 10 {
+        return;
+    }
+
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("src/output/challenge_14_christmas_tree.txt")
+        .unwrap();
+
+    writeln!(file, "After: {} seconds", index + 1).unwrap();
+    for row in matrix {
+        let row_str: String = row.into_iter().collect();
+        writeln!(file, "{}", row_str).unwrap();
+    }
+    writeln!(file, "\n\n").unwrap();
 }
 
 pub fn restroom_redoubt(file_path: &str) {
     // read lines from the file in the file_path
     if let Ok(file) = File::open(file_path) {
         let re = Regex::new(r"-?\d+").unwrap();
-        let mut count_per_quarter = [0, 0, 0, 0];
 
         let lines = io::BufReader::new(file).lines();
+        let mut robots: Vec<Robot> = lines
+            .flatten()
+            .map(|line| {
+                let nums: Vec<i32> = re
+                    .captures_iter(&line)
+                    .filter_map(|cap| cap.get(0)?.as_str().parse().ok()) // Only parse valid numbers
+                    .collect();
 
-        for line in lines.flatten() {
-            let nums: Vec<i32> = re
-                .captures_iter(&line)
-                .filter_map(|cap| cap.get(0)?.as_str().parse().ok()) // Only parse valid numbers
-                .collect();
-
-            let [px, py, vx, vy] = nums.try_into().unwrap();
-            let mut robot = Robot {
-                position: Coord { x: px, y: py },
-                velocity: Coord { x: vx, y: vy },
-            };
-
-            for idx in 0..MOV_COUNT {
-                move_robot(&mut robot);
-                // ignore the robots in the center row or column
-                if robot.position.x == MID_W || robot.position.y == MID_H {
-                    continue;
+                let [px, py, vx, vy] = nums.try_into().unwrap();
+                Robot {
+                    position: Coord { x: px, y: py },
+                    velocity: Coord { x: vx, y: vy },
                 }
+            })
+            .collect();
 
-                // for last iteration, get in which quarter it is
-                if idx == MOV_COUNT - 1 {
-                    let quarter = get_matrix_quarter(robot.position);
-                    count_per_quarter[quarter.get_quarter() as usize] += 1;
-                }
+        for index in 0..(H * W) {
+            for robot in robots.iter_mut() {
+                move_robot(robot);
             }
-
-            println!("{:?}", robot.position);
+            print_robot_matrix(&robots, index);
         }
-
-        println!(
-            "The anser for the Challenge 14 puz 1: {:?}",
-            count_per_quarter.iter().fold(1, |acc, x| acc * x)
-        );
     }
 }
