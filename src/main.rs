@@ -3,7 +3,9 @@ use challenge_10::topographic_map_search;
 use challenge_11::stone_count;
 use challenge_12::garden_groups;
 use challenge_12_puz_1::garden_groups_v1;
-use challenge_13_puz_1::min_tokens;
+use challenge_13::min_tokens;
+use challenge_13_puz_1::min_tokens_1;
+use challenge_14::restroom_redoubt;
 use challenge_2::get_safe_reports_count;
 use challenge_3::get_uncorrupted_mul_ans;
 // use challenge_4::search_for_xmas;
@@ -22,7 +24,9 @@ mod challenge_11;
 mod challenge_11_puz_1;
 mod challenge_12;
 mod challenge_12_puz_1;
+mod challenge_13;
 mod challenge_13_puz_1;
+mod challenge_14;
 mod challenge_2;
 mod challenge_3;
 mod challenge_4;
@@ -53,5 +57,6 @@ fn main() {
     // garden_groups("src/inputs/challenge_12.txt");
     // garden_groups("src/inputs/challenge_12.txt");
     // garden_groups("src/inputs/challenge_12.txt");
-    min_tokens("src/inputs/challenge_13.txt");
+    // min_tokens("src/inputs/challenge_13.txt");
+    restroom_redoubt("src/inputs/challenge_14.txt");
 }
