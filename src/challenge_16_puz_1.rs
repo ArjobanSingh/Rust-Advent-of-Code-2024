@@ -234,61 +234,7 @@ fn find_shortest_correct_path(
     }
 }
 
-pub fn backtrack_best_path(
-    matrix: &Vec<Vec<char>>,
-    start_position: (i32, i32),
-    mut end_position: (i32, i32),
-    distances: &Vec<i32>,
-) {
-    let rows = matrix.len();
-    let cols = matrix[0].len();
-
-    let mut path = Vec::new();
-    path.push(end_position);
-
-    while end_position != start_position {
-        let (er, ec) = end_position;
-
-        let min_neigh_direction = [
-            Direction::Top,
-            Direction::Right,
-            Direction::Bottom,
-            Direction::Left,
-        ]
-        .iter()
-        .map(|&direction| {
-            let idx = get_uniq_idx_with_dir(er, ec, cols as i32, direction);
-            (distances[idx as usize], direction)
-        })
-        .min_by(|a, b| a.0.cmp(&b.0));
-
-        if let Some((_, min_neigh_direction)) = min_neigh_direction {
-            let (dy, dx) = min_neigh_direction.to_offset();
-            let (nr, nc) = (er + dy * -1, ec + dx * -1);
-
-            path.push((nr, nc));
-            end_position.0 = nr;
-            end_position.1 = nc;
-        } else {
-            // Shouldn't happen though
-            println!("How did this happen?");
-            break;
-        }
-    }
-
-    for r in 0..rows {
-        for c in 0..cols {
-            if path.contains(&(r as i32, c as i32)) {
-                print!("O");
-            } else {
-                print!("{}", matrix[r][c]);
-            }
-        }
-        println!();
-    }
-}
-
-pub fn reindeer_olympics(file_path: &str) {
+pub fn reindeer_olympics_v1(file_path: &str) {
     if let Ok(file) = File::open(file_path) {
         let mut matrix: Vec<Vec<char>> = Vec::new();
 
@@ -342,6 +288,5 @@ pub fn reindeer_olympics(file_path: &str) {
         .min();
 
         println!("Challenge 16 ans: {:?}", answer);
-        backtrack_best_path(&matrix, robot_position, end_position, &distances);
     }
 }
