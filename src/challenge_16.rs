@@ -267,6 +267,10 @@ fn find_shortest_correct_path(
         } = current;
 
         let uniq_idx = get_uniq_idx_with_dir(row, col, cols as i32, direction);
+        if visited[uniq_idx as usize] {
+            continue;
+        }
+
         visited[uniq_idx as usize] = true;
 
         for neighbour_path in direction.get_neighbour_path() {
@@ -431,7 +435,7 @@ pub fn reindeer_olympics(file_path: &str) {
             }
             // print_nodes_in_path(&matrix, &uniq_nodes);
             println!(
-                "Challenge 16 sortest cost {shortest_cost} and best nodes count: {:?}",
+                "Challenge 16 Shortest path cost {shortest_cost} and best nodes count: {:?}",
                 uniq_nodes.len()
             );
         }
