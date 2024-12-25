@@ -6,6 +6,7 @@ use challenge_13::min_tokens;
 use challenge_14::restroom_redoubt;
 use challenge_15::warehouse_woes;
 use challenge_16::reindeer_olympics;
+use challenge_18::ram_run;
 use challenge_2::get_safe_reports_count;
 use challenge_3::get_uncorrupted_mul_ans;
 // use challenge_4::search_for_xmas;
@@ -23,6 +24,7 @@ mod challenge_13;
 mod challenge_14;
 mod challenge_15;
 mod challenge_16;
+mod challenge_18;
 mod challenge_2;
 mod challenge_3;
 mod challenge_4;
@@ -49,5 +51,6 @@ fn main() {
     // min_tokens("src/inputs/challenge_13.txt");
     // restroom_redoubt("src/inputs/challenge_14.txt");
     // warehouse_woes("src/inputs/challenge_15.txt");
-    reindeer_olympics("src/inputs/challenge_16.txt");
+    // reindeer_olympics("src/inputs/challenge_16.txt");
+    ram_run("src/inputs/challenge_18.txt");
 }
