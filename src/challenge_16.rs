@@ -1,6 +1,6 @@
 use std::{
     cmp,
-    collections::BinaryHeap,
+    collections::{BinaryHeap, HashSet},
     fs::File,
     i32,
     io::{self, BufRead},
@@ -22,7 +22,7 @@ enum Direction {
 #[derive(Debug, Clone, Copy)]
 struct NeighbourPath {
     direction: Direction,
-    rotated_no: i32,
+    rotations: i32,
 }
 
 impl Direction {
@@ -35,78 +35,87 @@ impl Direction {
         }
     }
 
+    fn get_opposite_dir(&self) -> Direction {
+        match self {
+            Direction::Top => Direction::Bottom,
+            Direction::Bottom => Direction::Top,
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
+        }
+    }
+
     fn get_neighbour_path(&self) -> [NeighbourPath; 4] {
         match self {
             Direction::Top => [
                 NeighbourPath {
                     direction: Direction::Top,
-                    rotated_no: 0,
+                    rotations: 0,
                 },
                 NeighbourPath {
                     direction: Direction::Left,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Right,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Bottom,
-                    rotated_no: 2,
+                    rotations: 2,
                 },
             ],
             Direction::Right => [
                 NeighbourPath {
                     direction: Direction::Right,
-                    rotated_no: 0,
+                    rotations: 0,
                 },
                 NeighbourPath {
                     direction: Direction::Top,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Bottom,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Left,
-                    rotated_no: 2,
+                    rotations: 2,
                 },
             ],
             Direction::Bottom => [
                 NeighbourPath {
                     direction: Direction::Bottom,
-                    rotated_no: 0,
+                    rotations: 0,
                 },
                 NeighbourPath {
                     direction: Direction::Left,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Right,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Top,
-                    rotated_no: 2,
+                    rotations: 2,
                 },
             ],
             Direction::Left => [
                 NeighbourPath {
                     direction: Direction::Left,
-                    rotated_no: 0,
+                    rotations: 0,
                 },
                 NeighbourPath {
                     direction: Direction::Top,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Bottom,
-                    rotated_no: 1,
+                    rotations: 1,
                 },
                 NeighbourPath {
                     direction: Direction::Right,
-                    rotated_no: 2,
+                    rotations: 2,
                 },
             ],
         }
@@ -153,6 +162,65 @@ impl PartialOrd for State {
     }
 }
 
+pub fn print_nodes_in_path(matrix: &Vec<Vec<char>>, nodes: &HashSet<(i32, i32)>) {
+    let rows = matrix.len();
+    let cols = matrix[0].len();
+
+    for r in 0..rows {
+        for c in 0..cols {
+            if nodes.contains(&(r as i32, c as i32)) {
+                print!("O");
+            } else {
+                print!("{}", matrix[r][c]);
+            }
+        }
+        println!();
+    }
+}
+pub fn backtrack_single_best_path(
+    matrix: &Vec<Vec<char>>,
+    start_position: (i32, i32),
+    mut end_position: (i32, i32),
+    distances: &Vec<i32>,
+) {
+    let cols = matrix[0].len();
+
+    let mut path: Vec<(i32, i32)> = Vec::new();
+    path.push(end_position);
+
+    while end_position != start_position {
+        let (er, ec) = end_position;
+
+        let min_neigh_direction = [
+            Direction::Top,
+            Direction::Right,
+            Direction::Bottom,
+            Direction::Left,
+        ]
+        .iter()
+        .map(|&direction| {
+            let idx = get_uniq_idx_with_dir(er, ec, cols as i32, direction);
+            (distances[idx as usize], direction)
+        })
+        .min_by(|a, b| a.0.cmp(&b.0));
+
+        if let Some((_, min_neigh_direction)) = min_neigh_direction {
+            let (dy, dx) = min_neigh_direction.to_offset();
+            let (nr, nc) = (er + dy * -1, ec + dx * -1);
+
+            path.push((nr, nc));
+            end_position.0 = nr;
+            end_position.1 = nc;
+        } else {
+            // Shouldn't happen though
+            break;
+        }
+    }
+
+    let set: HashSet<(i32, i32)> = path.into_iter().collect();
+    print_nodes_in_path(matrix, &set);
+}
+
 fn get_uniq_idx_with_dir(r: i32, c: i32, cols: i32, dir: Direction) -> i32 {
     (r * cols + c) * 4 + dir.get_direction_idx()
 }
@@ -182,7 +250,14 @@ fn find_shortest_correct_path(
         direction: start_direction,
     });
 
-    // till we have visited all the valid nodes
+    let idx = get_uniq_idx_with_dir(
+        start_position.0,
+        start_position.1,
+        cols as i32,
+        start_direction,
+    );
+    distances[idx as usize] = 0;
+
     while let Some(current) = min_queue.pop() {
         let State {
             row,
@@ -197,16 +272,17 @@ fn find_shortest_correct_path(
         for neighbour_path in direction.get_neighbour_path() {
             let NeighbourPath {
                 direction: neigh_direction,
-                rotated_no,
+                rotations,
             } = neighbour_path;
 
-            let tentative_distance = ROTATE_COST * rotated_no + 1 + distance;
-            let (dy, dx) = neigh_direction.to_offset();
-            let (nr, nc) = (row + dy, col + dx);
-
-            if !inside(matrix, (nr, nc)) {
-                continue;
-            }
+            // If there's different direction, just rotate it and do not move forward.
+            let (tentative_distance, (nr, nc)) = if neigh_direction != direction {
+                (ROTATE_COST * rotations + distance, (row, col))
+            } else {
+                // Move forward in same direction.
+                let (dy, dx) = neigh_direction.to_offset();
+                (1 + distance, (row + dy, col + dx))
+            };
 
             let neigh_data = matrix[nr as usize][nc as usize];
             if neigh_data == WALL {
@@ -234,58 +310,23 @@ fn find_shortest_correct_path(
     }
 }
 
-pub fn backtrack_best_path(
-    matrix: &Vec<Vec<char>>,
-    start_position: (i32, i32),
-    mut end_position: (i32, i32),
+fn get_min_node_dist_for_node(
+    position: (i32, i32),
+    cols: i32,
     distances: &Vec<i32>,
-) {
-    let rows = matrix.len();
-    let cols = matrix[0].len();
-
-    let mut path = Vec::new();
-    path.push(end_position);
-
-    while end_position != start_position {
-        let (er, ec) = end_position;
-
-        let min_neigh_direction = [
-            Direction::Top,
-            Direction::Right,
-            Direction::Bottom,
-            Direction::Left,
-        ]
-        .iter()
-        .map(|&direction| {
-            let idx = get_uniq_idx_with_dir(er, ec, cols as i32, direction);
-            (distances[idx as usize], direction)
-        })
-        .min_by(|a, b| a.0.cmp(&b.0));
-
-        if let Some((_, min_neigh_direction)) = min_neigh_direction {
-            let (dy, dx) = min_neigh_direction.to_offset();
-            let (nr, nc) = (er + dy * -1, ec + dx * -1);
-
-            path.push((nr, nc));
-            end_position.0 = nr;
-            end_position.1 = nc;
-        } else {
-            // Shouldn't happen though
-            println!("How did this happen?");
-            break;
-        }
-    }
-
-    for r in 0..rows {
-        for c in 0..cols {
-            if path.contains(&(r as i32, c as i32)) {
-                print!("O");
-            } else {
-                print!("{}", matrix[r][c]);
-            }
-        }
-        println!();
-    }
+) -> Option<(i32, Direction)> {
+    [
+        Direction::Top,
+        Direction::Right,
+        Direction::Bottom,
+        Direction::Left,
+    ]
+    .iter()
+    .map(|&direction| {
+        let idx = get_uniq_idx_with_dir(position.0, position.1, cols as i32, direction);
+        (distances[idx as usize], direction)
+    })
+    .min_by(|a, b| a.0.cmp(&b.0))
 }
 
 pub fn reindeer_olympics(file_path: &str) {
@@ -327,21 +368,72 @@ pub fn reindeer_olympics(file_path: &str) {
             Direction::Right,
         );
 
-        let (er, ec) = end_position;
-        let answer = [
-            Direction::Top,
-            Direction::Right,
-            Direction::Bottom,
-            Direction::Left,
-        ]
-        .iter()
-        .map(|&direction| {
-            let idx = get_uniq_idx_with_dir(er, ec, cols as i32, direction);
-            distances[idx as usize]
-        })
-        .min();
+        let answer = get_min_node_dist_for_node(end_position, cols as i32, &distances);
 
-        println!("Challenge 16 ans: {:?}", answer);
-        backtrack_best_path(&matrix, robot_position, end_position, &distances);
+        // The solution to find all nodes in path is. Just run Djikstra from end, from opposite
+        // direction of reaching. And at last check for every node check, if dist_from start node + dist from end_node
+        // in any direction is equal to the best shortest distance we found.
+        if let Some((shortest_cost, dir_to_reach_end)) = answer {
+            visited.clear();
+            visited.resize(rows * cols * 4, false);
+
+            let mut end_distances = Vec::new();
+            end_distances.resize(rows * cols * 4, i32::MAX);
+            // Find shortest path from end
+            find_shortest_correct_path(
+                &mut matrix,
+                &mut visited,
+                &mut end_distances,
+                end_position,
+                dir_to_reach_end.get_opposite_dir(),
+            );
+
+            let mut uniq_nodes: HashSet<(i32, i32)> = HashSet::new();
+
+            for r in 0..rows {
+                for c in 0..cols {
+                    if matrix[r][c] == '#' {
+                        continue;
+                    }
+
+                    for start_dir in [
+                        Direction::Top,
+                        Direction::Right,
+                        Direction::Bottom,
+                        Direction::Left,
+                    ] {
+                        let idx = get_uniq_idx_with_dir(r as i32, c as i32, cols as i32, start_dir);
+                        let dist_from_start = distances[idx as usize];
+                        if dist_from_start == i32::MAX {
+                            continue;
+                        }
+
+                        for end_dir in [
+                            Direction::Top,
+                            Direction::Right,
+                            Direction::Bottom,
+                            Direction::Left,
+                        ] {
+                            let end_idx =
+                                get_uniq_idx_with_dir(r as i32, c as i32, cols as i32, end_dir);
+                            let dist_from_end = end_distances[end_idx as usize];
+
+                            if dist_from_end == i32::MAX {
+                                continue;
+                            }
+
+                            if dist_from_start + dist_from_end == shortest_cost {
+                                uniq_nodes.insert((r as i32, c as i32));
+                            }
+                        }
+                    }
+                }
+            }
+            // print_nodes_in_path(&matrix, &uniq_nodes);
+            println!(
+                "Challenge 16 sortest cost {shortest_cost} and best nodes count: {:?}",
+                uniq_nodes.len()
+            );
+        }
     }
 }
