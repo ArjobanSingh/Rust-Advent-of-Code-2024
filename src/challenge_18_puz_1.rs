@@ -50,11 +50,7 @@ fn inside(matrix: &Vec<Vec<char>>, position: (i32, i32)) -> bool {
 }
 
 // Djikstra's Algorithm
-fn check_if_shortest_path_available(
-    matrix: &Vec<Vec<char>>,
-    distances: &mut Vec<i32>,
-    visited: &mut Vec<bool>,
-) -> bool {
+fn find_shortest_path(matrix: &Vec<Vec<char>>, distances: &mut Vec<i32>, visited: &mut Vec<bool>) {
     let start_pos: (i32, i32) = (0, 0);
     let end_position: (i32, i32) = (ROWS - 1, COLS - 1);
 
@@ -69,12 +65,9 @@ fn check_if_shortest_path_available(
         let State { distance, row, col } = state;
         let idx = get_uniq_idx(row, col, COLS);
 
-        if visited[idx as usize] {
-            continue;
-        }
         visited[idx as usize] = true;
-
         if (row, col) == end_position {
+            println!("Ans is {distance}");
             break;
         }
 
@@ -101,52 +94,37 @@ fn check_if_shortest_path_available(
             }
         }
     }
-
-    let idx = get_uniq_idx(end_position.0, end_position.1, COLS);
-
-    if distances[idx as usize] == i32::MAX {
-        // We didn't find the exit path
-        false
-    } else {
-        true
-    }
 }
 
-pub fn ram_run(file_path: &str) {
+pub fn ram_run_puz_1(file_path: &str) {
     if let Ok(file) = File::open(file_path) {
         let mut matrix: Vec<Vec<char>> = vec![vec!['.'; ROWS as usize]; COLS as usize];
 
         let lines = io::BufReader::new(file).lines();
 
-        let mut byte_idx = 0;
-        for line in lines.flatten() {
-            let coords: Vec<i32> = line
-                .split(',')
-                .filter_map(|str| str.to_string().parse::<i32>().ok())
-                .collect();
+        let mut flattened = lines.flatten();
 
-            let col = coords[0];
-            let row = coords[1];
+        for _ in 0..BREAK_AT {
+            let line = flattened.next();
+            if let Some(line) = line {
+                let coords: Vec<i32> = line
+                    .split(',')
+                    .filter_map(|str| str.to_string().parse::<i32>().ok())
+                    .collect();
 
-            matrix[row as usize][col as usize] = WALL;
-            byte_idx += 1;
-            if byte_idx <= BREAK_AT {
-                continue;
-            }
+                let col = coords[0];
+                let row = coords[1];
 
-            // Instead of checking all the next paths after break index.
-            // I could have run a BINARY SEARCH to find the shortest input pair
-            // which would have blocked the exit.
-            let mut distances: Vec<i32> = vec![i32::MAX; (ROWS * COLS) as usize];
-            let mut visited: Vec<bool> = vec![false; (ROWS * COLS) as usize];
-            let is_available =
-                check_if_shortest_path_available(&matrix, &mut distances, &mut visited);
-
-            if !is_available {
-                println!("Byte Index in input: {}", byte_idx);
-                println!("Ans: {:?}", (col, row));
-                break;
+                matrix[row as usize][col as usize] = WALL;
             }
         }
+
+        let mut distances: Vec<i32> = vec![i32::MAX; (ROWS * COLS) as usize];
+        let mut visited: Vec<bool> = vec![false; (ROWS * COLS) as usize];
+
+        find_shortest_path(&matrix, &mut distances, &mut visited);
+        // for row in matrix {
+        //     println!("{:?}", row);
+        // }
     }
 }
